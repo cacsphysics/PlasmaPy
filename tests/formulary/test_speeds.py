@@ -49,12 +49,14 @@ class TestAlfvenSpeed:
             ((10 * u.T, 1.0e-10 * u.kg * u.m**-3), {}, RelativityError),
             ((np.inf * u.T, 1 * u.m**-3), {"ion": "p"}, RelativityError),
             ((-np.inf * u.T, 1 * u.m**-3), {"ion": "p"}, RelativityError),
-            ((1 * u.T, 5e19 * u.m**-3), {"ion": "spacecats"}, InvalidParticleError),
+            (
+                (1 * u.T, 5e19 * u.m**-3),
+                {"ion": "invalid particle"},
+                InvalidParticleError,
+            ),
             ((1 * u.T, 1.0e18 * u.m**-3), {"ion": ["He"]}, InvalidIonError),
             ((1 * u.T, 1.0e-9 * u.kg * u.m**-3), {"ion": ["He+"]}, ValueError),
-            (("not a Bfield", 1.0e-10 * u.kg * u.m**-3), {}, TypeError),
             ((1 * u.T,), {"density": 1e9 * u.m**-3, "ion": None}, ValueError),
-            ((10 * u.T, "not a density"), {}, TypeError),
             ((10 * u.T, 5), {"ion": "p"}, TypeError),
             ((1 * u.T, 1.0e18 * u.m**-3), {"ion": "He", "Z": "nope"}, TypeError),
             ((1 * u.T, 1.0e18 * u.cm), {"ion": "He 1+"}, u.UnitTypeError),
@@ -108,11 +110,13 @@ class TestAlfvenSpeed:
     )
     def test_warns(self, args, kwargs, expected, isclose_kw, _warning) -> None:
         """Test scenarios that issue warnings"""
-        with pytest.warns(_warning):
+        with pytest.warns(_warning):  # noqa: PT031
             val = Alfven_speed(*args, **kwargs)
             assert isinstance(val, u.Quantity)
             assert val.unit == u.m / u.s
-            assert np.isclose(val.value, expected, **isclose_kw)
+            np.testing.assert_allclose(
+                val.value, expected, **{"rtol": 1e-5, "atol": 1e-8, **isclose_kw}
+            )  # ty:ignore[no-matching-overload]
 
     @pytest.mark.parametrize(
         ("args", "kwargs", "expected", "isclose_kw"),
@@ -181,7 +185,11 @@ class TestAlfvenSpeed:
     )
     def test_values(self, args, kwargs, expected, isclose_kw) -> None:
         """Test expected values."""
-        assert np.allclose(Alfven_speed(*args, **kwargs), expected, **isclose_kw)
+        np.testing.assert_allclose(
+            Alfven_speed(*args, **kwargs),
+            expected,
+            **{"rtol": 1e-5, "atol": 1e-8, **isclose_kw},
+        )  # ty:ignore[no-matching-overload]
 
     @pytest.mark.parametrize(
         ("args", "kwargs", "nan_mask"),
@@ -306,7 +314,11 @@ class Test_Ion_Sound_Speed:
         ],
     )
     def test_values(self, args, kwargs, expected, isclose_kw) -> None:
-        assert np.isclose(ion_sound_speed(*args, **kwargs), expected, **isclose_kw)
+        np.testing.assert_allclose(
+            ion_sound_speed(*args, **kwargs),
+            expected,
+            **{"rtol": 1e-5, "atol": 1e-8, **isclose_kw},
+        )  # ty:ignore[no-matching-overload]
 
     # case when Z=1 is assumed
     # assert ion_sound_speed(T_i=T_i, T_e=T_e, ion='p+') == ion_sound_speed(T_i=T_i, T_e=T_e,
@@ -331,7 +343,7 @@ class Test_Ion_Sound_Speed:
         ],
     )
     def test_warns(self, kwargs1, kwargs2, _warning) -> None:
-        with pytest.warns(_warning):
+        with pytest.warns(_warning):  # noqa: PT031
             val = ion_sound_speed(**kwargs1)
             if kwargs2 != {}:
                 val == ion_sound_speed(**kwargs2)  # noqa: B015

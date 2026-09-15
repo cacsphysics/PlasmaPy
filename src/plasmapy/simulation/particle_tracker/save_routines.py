@@ -5,8 +5,8 @@ Module containing save routines for the particle tracker.
 __all__ = [
     "AbstractSaveRoutine",
     "DoNotSaveSaveRoutine",
-    "SaveOnceOnCompletion",
     "IntervalSaveRoutine",
+    "SaveOnceOnCompletion",
 ]
 
 from abc import ABC, abstractmethod
@@ -30,6 +30,9 @@ class AbstractSaveRoutine(ABC):
         Output for objects that are saved to disk. If a directory is not specified
         then a memory save routine is used.
 
+    output_basename : `str`, optional
+        Optional string basename for saved files.
+
 
     Notes
     -----
@@ -38,8 +41,13 @@ class AbstractSaveRoutine(ABC):
     Then, the hook calls `save_now` to determine whether or not the simulation state should be saved.
     """
 
-    def __init__(self, output_directory: Path | None = None) -> None:
+    def __init__(
+        self,
+        output_directory: Path | None = None,
+        output_basename: str = "output",
+    ) -> None:
         self.output_directory = output_directory
+        self.output_basename = output_basename
 
         self._results = {}
         self._quantities = {
@@ -84,7 +92,6 @@ class AbstractSaveRoutine(ABC):
         If an output directory is specified then the state will also be saved
         to the disk.
         """
-
         self._save_to_memory()
 
         if self.output_directory is not None:
@@ -92,21 +99,22 @@ class AbstractSaveRoutine(ABC):
 
     def _save_to_disk(self) -> None:
         """Save a hdf5 file containing simulation positions and velocities."""
-
-        path = self.output_directory / f"{self.tracker.iteration_number}.hdf5"
+        path = (
+            self.output_directory
+            / f"{self.output_basename}_iter{self.tracker.iteration_number}.h5"  # ty:ignore[unsupported-operator]
+        )
 
         with h5py.File(path, "w") as output_file:
-            for key, (_units, data_type) in self._quantities.items():  # noqa: B007
+            for key, (_units, data_type) in self._quantities.items():
                 match data_type:
                     case "attribute":
                         output_file.attrs.create(key, self._results[key])
                     case "dataset":
                         output_file.create_dataset(key, data=self._results[key])
 
-    # TODO: Find a better name for this method
+    # TODO: Find a better name for this method  # noqa: FIX002
     def _save_to_memory(self) -> None:
         """Update the results dictionary with the current state of the simulation."""
-
         for quantity in self._quantities:
             quantity_history = self._results.get(quantity, [])
             current_quantity = np.copy(getattr(self._particle_tracker, quantity, 0))
@@ -121,7 +129,7 @@ class AbstractSaveRoutine(ABC):
         """
         results_copy = self._results.copy()
 
-        for quantity, (units, _data_type) in self._quantities.items():  # noqa: B007
+        for quantity, (units, _data_type) in self._quantities.items():
             # Only apply units if they are specified
             # otherwise assume the quantity is dimensionless
             if units is not None:
@@ -137,7 +145,6 @@ class AbstractSaveRoutine(ABC):
             - How the simulation data is saved (i.e. to disk or memory)
 
         """
-
         # Update the result dictionary
         if self.save_now:
             self.save()
@@ -171,8 +178,12 @@ class SaveOnceOnCompletion(AbstractSaveRoutine):
     bypassing the ``save_now()`` criteria.
     """
 
-    def __init__(self, output_directory: Path | None = None) -> None:
-        super().__init__(output_directory)
+    def __init__(
+        self,
+        output_directory: Path | None = None,
+        output_basename: str = "output",
+    ) -> None:
+        super().__init__(output_directory, output_basename)
 
     @property
     def save_now(self) -> bool:
@@ -188,7 +199,7 @@ class SaveOnceOnCompletion(AbstractSaveRoutine):
 class IntervalSaveRoutine(AbstractSaveRoutine):
     """Abstract class describing a save routine that saves every given interval."""
 
-    def __init__(self, interval: u.Quantity, **kwargs) -> None:
+    def __init__(self, interval: u.Quantity, **kwargs) -> None:  # noqa: ANN003
         super().__init__(**kwargs)
 
         self._quantities = {
@@ -208,7 +219,6 @@ class IntervalSaveRoutine(AbstractSaveRoutine):
     @property
     def save_now(self) -> bool:
         """Save at every interval given in instantiation."""
-
         return bool(self.tracker.time - self.time_of_last_save >= self.save_interval)
 
     def save(self) -> None:

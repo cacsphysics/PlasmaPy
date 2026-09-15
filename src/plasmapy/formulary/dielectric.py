@@ -1,11 +1,11 @@
-"""Functions to calculate plasma dielectric parameters."""
+"""Plasma dielectric parameters."""
 
 __all__ = [
-    "cold_plasma_permittivity_SDP",
-    "cold_plasma_permittivity_LRP",
-    "permittivity_1D_Maxwellian",
     "RotatingTensorElements",
     "StixTensorElements",
+    "cold_plasma_permittivity_LRP",
+    "cold_plasma_permittivity_SDP",
+    "permittivity_1D_Maxwellian",
 ]
 __lite_funcs__ = ["permittivity_1D_Maxwellian_lite"]
 
@@ -37,7 +37,8 @@ StixTensorElements = namedtuple("StixTensorElements", ["sum", "difference", "pla
 
 
 RotatingTensorElements = namedtuple(
-    "RotatingTensorElements", ["left", "right", "plasma"]
+    "RotatingTensorElements",
+    ["left", "right", "plasma"],
 )
 """Output type for `~plasmapy.formulary.dielectric.cold_plasma_permittivity_LRP`."""
 
@@ -284,9 +285,8 @@ def permittivity_1D_Maxwellian_lite(omega, kWave, vth, wp):
     >>> wp = plasma_frequency(n=n, particle=particle, Z=Z).value
     >>> k_wave = omega / vth
     >>> permittivity_1D_Maxwellian_lite(omega, k_wave, vth=vth, wp=wp)
-    (-6.72794...e-08+5.76024...e-07j)
+    np.complex128(-6.72794...e-08+5.76024...e-07j)
     """
-
     # scattering parameter alpha.
     # explicitly removing factor of sqrt(2) to be consistent with Froula
     alpha = np.sqrt(2) * wp / (kWave * vth)
@@ -297,9 +297,10 @@ def permittivity_1D_Maxwellian_lite(omega, kWave, vth, wp):
 
 @bind_lite_func(permittivity_1D_Maxwellian_lite)
 @validate_quantities(
-    kWave={"none_shall_pass": True}, validations_on_return={"can_be_complex": True}
+    kWave={"none_shall_pass": True},
+    validations_on_return={"can_be_complex": True},
 )
-def permittivity_1D_Maxwellian(
+def permittivity_1D_Maxwellian(  # noqa: PLR0917
     omega: u.Quantity[u.rad / u.s],
     kWave: u.Quantity[u.rad / u.m],
     T: u.Quantity[u.K],
@@ -392,7 +393,7 @@ def permittivity_1D_Maxwellian(
     >>> permittivity_1D_Maxwellian.lite(
     ...     omega.value, k_wave.value, vth=vth.value, wp=wp.value
     ... )
-    (-6.72955...e-08+5.76163...e-07j)
+    np.complex128(-6.72955...e-08+5.76163...e-07j)
     """
     vth = thermal_speed(T=T, particle=particle, method="most_probable").value
     wp = plasma_frequency(n=n, particle=particle, Z=z_mean).value

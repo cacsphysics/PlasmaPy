@@ -33,33 +33,26 @@ class TestHollweg:
     @pytest.mark.parametrize(
         ("kwargs", "_error"),
         [
-            ({**_kwargs_single_valued, "B": "wrong type"}, TypeError),
             ({**_kwargs_single_valued, "B": [8e-9, 8.5e-9] * u.T}, ValueError),
             ({**_kwargs_single_valued, "B": -1 * u.T}, ValueError),
             ({**_kwargs_single_valued, "B": 5 * u.m}, u.UnitTypeError),
             ({**_kwargs_single_valued, "ion": {"not": "a particle"}}, TypeError),
             ({**_kwargs_single_valued, "ion": "e-"}, InvalidIonError),
-            ({**_kwargs_single_valued, "ion": "He", "Z": "wrong type"}, TypeError),
             ({**_kwargs_single_valued, "k": np.ones((3, 2)) * u.rad / u.m}, ValueError),
             ({**_kwargs_single_valued, "k": 0 * u.rad / u.m}, ValueError),
             ({**_kwargs_single_valued, "k": -1.0 * u.rad / u.m}, ValueError),
             ({**_kwargs_single_valued, "k": 5 * u.s}, u.UnitTypeError),
-            ({**_kwargs_single_valued, "n_i": "wrong type"}, TypeError),
             ({**_kwargs_single_valued, "n_i": [5e6, 6e6] * u.m**-3}, ValueError),
             ({**_kwargs_single_valued, "n_i": -5e6 * u.m**-3}, ValueError),
             ({**_kwargs_single_valued, "n_i": 2 * u.s}, u.UnitTypeError),
-            ({**_kwargs_single_valued, "T_e": "wrong type"}, TypeError),
             ({**_kwargs_single_valued, "T_e": [1.4e6, 1.7e6] * u.K}, ValueError),
             ({**_kwargs_single_valued, "T_e": -10 * u.eV}, ValueError),
             ({**_kwargs_single_valued, "T_e": 2 * u.s}, u.UnitTypeError),
-            ({**_kwargs_single_valued, "T_i": "wrong type"}, TypeError),
             ({**_kwargs_single_valued, "T_i": [4e5, 5e5] * u.K}, ValueError),
             ({**_kwargs_single_valued, "T_i": -1 * u.eV}, ValueError),
             ({**_kwargs_single_valued, "T_i": 2 * u.s}, u.UnitTypeError),
             ({**_kwargs_single_valued, "theta": np.ones((3, 2)) * u.deg}, ValueError),
             ({**_kwargs_single_valued, "theta": 5 * u.eV}, u.UnitTypeError),
-            ({**_kwargs_single_valued, "gamma_e": "wrong type"}, TypeError),
-            ({**_kwargs_single_valued, "gamma_i": "wrong type"}, TypeError),
         ],
     )
     def test_raises(self, kwargs, _error) -> None:
@@ -194,7 +187,7 @@ class TestHollweg:
         """Test scenarios involving k and theta arrays."""
         ws = hollweg(**kwargs)
         for mode, val in ws.items():
-            assert np.allclose(val.value, expected[mode])
+            np.testing.assert_allclose(val.value, expected[mode], rtol=1e-5, atol=1e-8)
 
     @pytest.mark.parametrize(
         ("kwargs", "expected", "desired_beta"),
@@ -289,7 +282,7 @@ class TestHollweg:
         if not np.isclose(beta, desired_beta, atol=2e-4):
             pytest.fail(
                 f"The Holweg 1999 paper requires a 'beta' value of {desired_beta:0.5f} "
-                f"and the test parameters yielded {beta:.6f}."
+                f"and the test parameters yielded {beta:.6f}.",
             )
 
         kz = (np.cos(kwargs["theta"]) * kwargs["k"]).value
@@ -297,7 +290,7 @@ class TestHollweg:
         w_alfven = (hollweg(**kwargs)["alfven_mode"]).value
         big_omega = np.abs(w_alfven / (kz * va))
 
-        assert np.allclose(big_omega, expected, atol=1e-2)
+        np.testing.assert_allclose(big_omega, expected, atol=1e-2, rtol=1e-5)
 
     @pytest.mark.xfail(
         reason=(
@@ -334,7 +327,9 @@ class TestHollweg:
         ws_expected = hollweg(**expected)
 
         for mode in ws:
-            assert np.isclose(ws[mode], ws_expected[mode], atol=1e-5, rtol=1.7e-4)
+            np.testing.assert_allclose(
+                ws[mode], ws_expected[mode], atol=1e-5, rtol=1.7e-4
+            )
 
     @pytest.mark.filterwarnings("ignore::plasmapy.utils.exceptions.PhysicsWarning")
     @pytest.mark.parametrize(

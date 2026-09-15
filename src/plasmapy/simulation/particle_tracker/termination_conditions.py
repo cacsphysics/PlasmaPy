@@ -4,9 +4,9 @@ Module containing termination conditions for the particle tracker.
 
 __all__ = [
     "AbstractTerminationCondition",
-    "TimeElapsedTerminationCondition",
-    "NoParticlesOnGridsTerminationCondition",
     "AllParticlesOffGridTerminationCondition",
+    "NoParticlesOnGridsTerminationCondition",
+    "TimeElapsedTerminationCondition",
 ]
 
 from abc import ABC, abstractmethod
@@ -92,13 +92,11 @@ class TimeElapsedTerminationCondition(AbstractTerminationCondition):
     @property
     def units_string(self) -> str:
         """The units for the time elapsed condition have the units of seconds."""
-
         return "seconds"
 
     @property
     def is_finished(self) -> bool:
         """Conclude the simulation if all particles have been tracked over the specified termination time."""
-
         return bool(float(self.tracker.time) >= self.termination_time)
 
     @property
@@ -150,7 +148,7 @@ class NoParticlesOnGridsTerminationCondition(AbstractTerminationCondition):
     @property
     def total(self) -> float:
         """The progress of the simulation is measured against the total number of particles in the simulation."""
-        return float(self.tracker.nparticles)
+        return float(self.tracker.num_particles)
 
 
 class AllParticlesOffGridTerminationCondition(AbstractTerminationCondition):
@@ -185,7 +183,6 @@ class AllParticlesOffGridTerminationCondition(AbstractTerminationCondition):
     @property
     def units_string(self) -> str:
         """The termination condition tracks particles."""
-
         return "Particles"
 
     @property
@@ -193,7 +190,6 @@ class AllParticlesOffGridTerminationCondition(AbstractTerminationCondition):
         r"""
         Check to see if the proportion of particles that have entered and exited the grid meet thresholds.
         """
-
         # Of the particles that have entered the grid, how many are currently
         # on the grid?
         # if/else avoids dividing by zero
@@ -221,4 +217,4 @@ class AllParticlesOffGridTerminationCondition(AbstractTerminationCondition):
     @property
     def total(self) -> float:
         """The progress of the simulation is compared to the number of particles tracked."""
-        return self._particle_tracker.nparticles_tracked
+        return self._particle_tracker.num_particles_tracked

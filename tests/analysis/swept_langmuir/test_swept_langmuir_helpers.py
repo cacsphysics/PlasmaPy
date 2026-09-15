@@ -1,12 +1,13 @@
 """Tests for `plasmapy.analysis.swept_langmuir.helpers`."""
 
 from contextlib import nullcontext as does_not_raise
+from unittest import mock
 
 import astropy.units as u
 import numpy as np
 import pytest
 
-from plasmapy.analysis.swept_langmuir.helpers import check_sweep
+from plasmapy.analysis.swept_langmuir.helpers import check_sweep, sort_sweep_arrays
 
 
 @pytest.mark.parametrize(
@@ -163,6 +164,14 @@ from plasmapy.analysis.swept_langmuir.helpers import check_sweep
             does_not_raise(),
             (np.linspace(-40.0, 40, 100), np.linspace(-10.0, 30, 100)),
         ),
+        # -- allow_unsorted == True --
+        (
+            30.0 * np.random.default_rng().random(100) - 20.0,
+            np.linspace(-10.0, 30, 100),
+            {"allow_unsorted": True},
+            does_not_raise(),
+            "expected same as inputs",
+        ),
     ],
 )
 def test_check_sweep(voltage, current, kwargs, with_context, expected) -> None:
@@ -175,8 +184,96 @@ def test_check_sweep(voltage, current, kwargs, with_context, expected) -> None:
         )
 
         if expected == "expected same as inputs":
-            assert np.allclose(rtn_voltage, voltage)
-            assert np.allclose(rtn_current, current)
+            np.testing.assert_allclose(rtn_voltage, voltage, rtol=1e-5, atol=1e-8)
+            np.testing.assert_allclose(rtn_current, current, rtol=1e-5, atol=1e-8)
         else:
-            assert np.allclose(rtn_voltage, expected[0])
-            assert np.allclose(rtn_current, expected[1])
+            np.testing.assert_allclose(rtn_voltage, expected[0], rtol=1e-5, atol=1e-8)
+            np.testing.assert_allclose(rtn_current, expected[1], rtol=1e-5, atol=1e-8)
+
+
+@pytest.mark.parametrize(
+    ("voltage", "current", "kwargs", "with_context", "expected"),
+    [
+        # raises
+        (
+            np.linspace(-40.0, 40, 100),
+            np.linspace(-10.0, 30, 100),
+            {"voltage_order": 5.0},  # not a string
+            pytest.raises(TypeError),
+            None,
+        ),
+        (
+            np.linspace(-40.0, 40, 100),
+            np.linspace(-10.0, 30, 100),
+            {"voltage_order": "wrong string"},
+            pytest.raises(ValueError),
+            None,
+        ),
+        # values
+        (
+            np.linspace(-40.0, 40, 100),
+            np.linspace(-10.0, 30, 100),
+            {"voltage_order": "ascending"},
+            does_not_raise(),
+            None,
+        ),
+        (
+            np.linspace(-40.0, 40, 100),
+            np.linspace(-10.0, 30, 100),
+            {"voltage_order": "descending"},
+            does_not_raise(),
+            (np.linspace(40.0, -40, 100), np.linspace(30.0, -10, 100)),
+        ),
+        (
+            np.linspace(40.0, -40, 100),
+            np.linspace(-10.0, 30, 100),
+            {"voltage_order": "descending"},
+            does_not_raise(),
+            None,
+        ),
+        (
+            np.linspace(40.0, -40, 100),
+            np.linspace(-10.0, 30, 100),
+            {"voltage_order": "ascending"},
+            does_not_raise(),
+            (np.linspace(-40.0, 40, 100), np.linspace(30.0, -10, 100)),
+        ),
+        (
+            np.array([-40.0, 20.0, -22.0, 40.0]),
+            np.array([-10.0, 10.0, -5.0, 30.0]),
+            {"voltage_order": "ascending"},
+            does_not_raise(),
+            (np.array([-40.0, -22.0, 20.0, 40.0]), np.array([-10.0, -5.0, 10.0, 30.0])),
+        ),
+        (
+            np.array([-40.0, 20.0, -22.0, 40.0]),
+            np.array([-10.0, 10.0, -5.0, 30.0]),
+            {"voltage_order": "descending"},
+            does_not_raise(),
+            (np.array([40.0, 20.0, -22.0, -40.0]), np.array([30.0, 10.0, -5.0, -10.0])),
+        ),
+    ],
+)
+def test_sort_sweep_arrays(voltage, current, kwargs, with_context, expected) -> None:
+    with (
+        with_context,
+        mock.patch(
+            "plasmapy.analysis.swept_langmuir.helpers.check_sweep",
+            wraps=check_sweep,
+        ) as mock_check_sweep,
+    ):
+        rtn_voltage, rtn_current = sort_sweep_arrays(
+            voltage=voltage,
+            current=current,
+            **kwargs,
+        )
+
+        if expected is not None:
+            np.testing.assert_allclose(rtn_voltage, expected[0], rtol=1e-5, atol=1e-8)
+            np.testing.assert_allclose(rtn_current, expected[1], rtol=1e-5, atol=1e-8)
+        else:
+            np.testing.assert_allclose(rtn_voltage, voltage, rtol=1e-5, atol=1e-8)
+            np.testing.assert_allclose(rtn_current, current, rtol=1e-5, atol=1e-8)
+
+        mock_check_sweep.assert_called_once()
+        mock_check_sweep.reset_mock()

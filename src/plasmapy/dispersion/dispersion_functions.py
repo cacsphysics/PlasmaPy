@@ -1,6 +1,6 @@
 """
-Module containing functionality focused on the plasma dispersion function
-:math:`Z(ζ)`.
+For calculating the plasma dispersion function :math:`Z(ζ)` and its
+derivative :math:`Z′(ζ)`.
 """
 
 __all__ = ["plasma_dispersion_func", "plasma_dispersion_func_deriv"]
@@ -57,9 +57,9 @@ def plasma_dispersion_func(
     --------
     >>> from plasmapy.dispersion import plasma_dispersion_func
     >>> plasma_dispersion_func(0)
-    1.7724538509055159j
+    np.complex128(1.77245385...j)
     >>> plasma_dispersion_func(1 + 1j)
-    (-0.369...+0.540...j)
+    np.complex128(-0.36905845...+0.54014504...j)
     >>> plasma_dispersion_func([0.3, 0.7 + 2.3j])
     array([-0.56526333+1.61990085j, -0.09995023+0.37685142j])
     """
@@ -68,12 +68,12 @@ def plasma_dispersion_func(
     except u.UnitTypeError as wrong_units:
         raise u.UnitsError(
             "The argument to plasma_dispersion_func "
-            "must be dimensionless if it is a Quantity."
+            "must be dimensionless if it is a Quantity.",
         ) from wrong_units
     except TypeError as wrong_type:
         raise TypeError(
             "The argument to plasma_dispersion_func should be a real or "
-            "complex number or array, or a dimensionless Quantity."
+            "complex number or array, or a dimensionless Quantity.",
         ) from wrong_type
 
 
@@ -114,22 +114,22 @@ def plasma_dispersion_func_deriv(
     Examples
     --------
     >>> plasma_dispersion_func_deriv(0)
-    (-2+0j)
+    np.complex128(-2+0j)
     >>> plasma_dispersion_func_deriv(1j)
-    (-0.484255687717376...+0j)
+    np.complex128(-0.48425568771737604+0j)
     >>> plasma_dispersion_func_deriv(-1.52 + 0.47j)
-    (0.165871331498228...+0.445879788059350...j)
+    np.complex128(0.165871331...+0.4458797880...j)
     """
     try:
         return -2 * (1 + zeta * plasma_dispersion_func(zeta))
     except u.UnitsError as wrong_units:
         raise u.UnitsError(
             "The argument to plasma_dispersion_func_deriv "
-            "must be dimensionless if it is a Quantity."
+            "must be dimensionless if it is a Quantity.",
         ) from wrong_units
     except TypeError as wrong_type:
         raise TypeError(
             "The argument to plasma_dispersion_func_deriv "
             "must be one of the following types: complex, float, "
-            "int, ndarray, or a dimensionless Quantity."
+            "int, ndarray, or a dimensionless Quantity.",
         ) from wrong_type

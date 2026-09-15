@@ -1,9 +1,9 @@
-"""Functions to calculate fundamental plasma speed parameters."""
+"""Fundamental speeds in plasmas."""
 
 __all__ = [
     "Alfven_speed",
-    "kappa_thermal_speed",
     "ion_sound_speed",
+    "kappa_thermal_speed",
     "thermal_speed",
     "thermal_speed_coefficients",
     "thermal_speed_lite",
@@ -18,7 +18,6 @@ from typing import Literal
 import astropy.units as u
 import numpy as np
 from astropy.constants.si import k_B, mu0
-from numba import njit
 
 from plasmapy.formulary import lengths
 from plasmapy.particles import electron
@@ -49,7 +48,7 @@ def Alfven_speed(
     mass_numb: int | None = None,
     Z: float | None = None,
 ) -> u.Quantity[u.m / u.s]:
-    r"""Calculate the Alfvén speed.
+    r"""Calculate the Alfvén speed 🏎️💨.
 
     The Alfvén speed :math:`V_A` is the typical propagation speed of
     magnetic disturbances in a quasineutral plasma, and is given by:
@@ -156,18 +155,17 @@ def Alfven_speed(
     >>> Alfven_speed(B=B, density=n, ion="He", Z=1.8)
     <Quantity 21664.18... m / s>
     """
-
     if density.unit.physical_type == u.physical.mass_density and ion is not None:
         raise ValueError(
             "When calculating the Alfvén speed, an ion cannot be specified "
             "when the 'density' parameter is provided an argument with a "
-            "physical type of mass density."
+            "physical type of mass density.",
         )
 
     if density.unit.physical_type == u.physical.number_density and ion is None:
         raise ValueError(
             "When calculating the Alfvén speed, the ion must be specified "
-            "when 'density' has a physical type of number density."
+            "when 'density' has a physical type of number density.",
         )
 
     if density.unit.physical_type == u.physical.mass_density:
@@ -190,7 +188,7 @@ va_ = Alfven_speed
     k={"can_be_negative": False, "none_shall_pass": True},
 )
 @particle_input
-def ion_sound_speed(
+def ion_sound_speed(  # noqa: PLR0917
     T_e: u.Quantity[u.K],
     T_i: u.Quantity[u.K],
     ion: ParticleLike,
@@ -350,18 +348,17 @@ def ion_sound_speed(
     <Quantity 203155... m / s>
     >>> ion_sound_speed(T_e=500 * u.eV, T_i=200 * u.eV, n_e=n, k=k_1, ion="D+")
     <Quantity 229585... m / s>
-
     """
     for gamma, species in zip([gamma_e, gamma_i], ["electrons", "ions"], strict=False):
         if not isinstance(gamma, Real):
             raise TypeError(
                 f"The adiabatic index gamma for {species} must be a positive "
-                f"number greater than one."
+                f"number greater than one.",
             )
         if gamma < 1:
             raise PhysicsError(
                 f"The adiabatic index for {species} must be a positive "
-                f"number greater than one."
+                f"number greater than one.",
             )
 
     # Assume non-dispersive limit if values for n_e (or k) are not specified
@@ -372,6 +369,7 @@ def ion_sound_speed(
             "ion_sound_speed. To prevent this, values must "
             "be specified for both n_e and k.",
             PhysicsWarning,
+            stacklevel=2,
         )
     elif n_e is not None and k is not None:
         lambda_D = lengths.Debye_length(T_e, n_e)
@@ -448,7 +446,7 @@ def thermal_speed_coefficients(method: str, ndim: int) -> float:
     Examples
     --------
     >>> thermal_speed_coefficients(method="most_probable", ndim=3)
-    1.414213...
+    np.float64(1.414213...)
     """
     _coefficients = {
         (1, "most_probable"): 0,
@@ -469,14 +467,13 @@ def thermal_speed_coefficients(method: str, ndim: int) -> float:
         coeff = _coefficients[(ndim, method)]
     except KeyError as ex:
         raise ValueError(
-            f"Value for (ndim, method) pair not valid, got '({ndim}, {method})'."
+            f"Value for (ndim, method) pair not valid, got '({ndim}, {method})'.",
         ) from ex
 
     return coeff
 
 
 @preserve_signature
-@njit
 def thermal_speed_lite(T: float, mass: float, coeff: float) -> float:
     r"""
     The :term:`lite-function` for
@@ -521,7 +518,7 @@ def thermal_speed_lite(T: float, mass: float, coeff: float) -> float:
     >>> mass = Particle("p").mass.value
     >>> coeff = thermal_speed_coefficients(method="most_probable", ndim=3)
     >>> thermal_speed_lite(T=1e6, mass=mass, coeff=coeff)
-    128486...
+    np.float64(128486.57...)
     """
     return coeff * np.sqrt(k_B_si_unitless * T / mass)
 
@@ -720,7 +717,7 @@ def thermal_speed(
     >>> mass = Particle("p").mass.value
     >>> coeff = thermal_speed.coefficients(method="most_probable", ndim=3)
     >>> thermal_speed.lite(T=1e6, mass=mass, coeff=coeff)
-    128486...
+    np.float64(128486.57...)
     """
     if mass is None:
         mass = particle_mass(particle)
@@ -737,7 +734,7 @@ vth_ = thermal_speed
 
 @check_relativistic
 @validate_quantities(
-    T={"can_be_negative": False, "equivalencies": u.temperature_energy()}
+    T={"can_be_negative": False, "equivalencies": u.temperature_energy()},
 )
 @particle_input
 def kappa_thermal_speed(
@@ -806,6 +803,11 @@ def kappa_thermal_speed(
     : `~astropy.units.UnitsWarning`
         If units are not provided, SI units are assumed.
 
+    See Also
+    --------
+    ~plasmapy.formulary.speeds.kappa_thermal_speed
+    ~plasmapy.formulary.distribution.kappa_velocity_1D
+
     Notes
     -----
     The particle thermal speed is given by:
@@ -826,17 +828,12 @@ def kappa_thermal_speed(
     <Quantity 37905.47... m / s>
     >>> kappa_thermal_speed(5 * u.eV, 4, "p", "mean_magnitude")
     <Quantity 34922.98... m / s>
-
-    See Also
-    --------
-    ~plasmapy.formulary.speeds.kappa_thermal_speed
-    ~plasmapy.formulary.distribution.kappa_velocity_1D
     """
     # Checking thermal units
     if kappa <= 3 / 2:
         raise ValueError(
             f"Must have kappa > 3/2, instead of {kappa}, for "
-            "kappa distribution function to be valid."
+            "kappa distribution function to be valid.",
         )
     # different methods, as per https://en.wikipedia.org/wiki/Thermal_velocity
     vth = thermal_speed(T=T, particle=particle, method=method)

@@ -1,11 +1,11 @@
-"""Functions to calculate fundamental plasma frequency parameters."""
+"""Fundamental frequencies for a plasma."""
 
 __all__ = [
+    "Buchsbaum_frequency",
     "gyrofrequency",
     "lower_hybrid_frequency",
     "plasma_frequency",
     "upper_hybrid_frequency",
-    "Buchsbaum_frequency",
 ]
 __aliases__ = ["oc_", "wc_", "wlh_", "wp_", "wuh_"]
 __lite_funcs__ = ["plasma_frequency_lite"]
@@ -14,7 +14,6 @@ __lite_funcs__ = ["plasma_frequency_lite"]
 import astropy.units as u
 import numpy as np
 from astropy.constants.si import e, eps0
-from numba import njit
 
 from plasmapy import particles
 from plasmapy.particles.decorators import particle_input
@@ -38,13 +37,13 @@ eps0_si_unitless = eps0.value
     validations_on_return={
         "units": [u.rad / u.s, u.Hz],
         "equivalencies": [(u.cy / u.s, u.Hz)],
-    }
+    },
 )
 @angular_freq_to_hz
 def gyrofrequency(
     B: u.Quantity[u.T],
     particle: ParticleLike,
-    signed: bool = False,
+    signed: bool = False,  # noqa: FBT001, FBT002
     Z: float | None = None,
     mass_numb: int | None = None,
 ) -> u.Quantity[u.rad / u.s]:
@@ -92,7 +91,7 @@ def gyrofrequency(
 
     Warns
     -----
-    : `~astropy.units.UnitsWarning`
+    `~astropy.units.UnitsWarning`
         If units are not provided, and SI units are assumed.
 
     Notes
@@ -156,12 +155,11 @@ wc_ = gyrofrequency
 
 
 @preserve_signature
-@njit
 def plasma_frequency_lite(
     n: float,
     mass: float,
     Z: float,
-    to_hz: bool = False,
+    to_hz: bool = False,  # noqa: FBT001, FBT002
 ) -> float:
     r"""
     The :term:`lite-function` for
@@ -200,7 +198,7 @@ def plasma_frequency_lite(
     The particle plasma frequency is
 
     .. math::
-        ω_p = \sqrt{\frac{n |q|}{ε_0 m}}
+        ω_p = \sqrt{\frac{n q^2}{ε_0 m}}
 
     where :math:`n` is the number density, :math:`q` is the particle
     charge, and :math:`m` is the particle mass.
@@ -214,11 +212,11 @@ def plasma_frequency_lite(
     >>> from plasmapy.particles import Particle
     >>> mass = Particle("p+").mass.value
     >>> plasma_frequency_lite(n=1e19, mass=mass, Z=1)
-    416329...
+    np.float64(4163294534.0...)
     >>> plasma_frequency_lite(n=1e19, mass=mass, Z=1, to_hz=True)
-    662608...
+    np.float64(662608904.6...)
     """
-    omega_p = Z * e_si_unitless * np.sqrt(n / (eps0_si_unitless * mass))
+    omega_p = np.abs(Z) * e_si_unitless * np.sqrt(n / (eps0_si_unitless * mass))
 
     return omega_p / (2.0 * np.pi) if to_hz else omega_p
 
@@ -241,6 +239,9 @@ def plasma_frequency(
     Z: float | None = None,
 ) -> u.Quantity[u.rad / u.s]:
     r"""Calculate the particle plasma frequency.
+
+    This frequency is the natural rate at which electrons in plasma oscillate due to
+    electrostatic forces from ions.
 
     **Aliases:** `wp_`
 
@@ -286,7 +287,7 @@ def plasma_frequency(
 
     Warns
     -----
-    : `~astropy.units.UnitsWarning`
+    `~astropy.units.UnitsWarning`
         If units are not provided, SI units are assumed.
 
     Notes
@@ -324,15 +325,15 @@ def plasma_frequency(
     >>> from plasmapy.particles import Particle
     >>> mass = Particle("p+").mass.value
     >>> plasma_frequency.lite(n=1e19, mass=mass, Z=1)
-    416329...
+    np.float64(4163294534.0...)
     >>> plasma_frequency.lite(n=1e19, mass=mass, Z=1, to_hz=True)
-    662608...
+    np.float64(662608904.6...)
     """
     return (
         plasma_frequency_lite(
             n=n.value,
             mass=particle.mass.value,
-            Z=np.abs(particle.charge_number),
+            Z=particle.charge_number,
         )
         * u.rad
         / u.s
@@ -352,7 +353,9 @@ wp_ = plasma_frequency
 )
 @angular_freq_to_hz
 def lower_hybrid_frequency(
-    B: u.Quantity[u.T], n_i: u.Quantity[u.m**-3], ion: ParticleLike
+    B: u.Quantity[u.T],
+    n_i: u.Quantity[u.m**-3],
+    ion: ParticleLike,
 ) -> u.Quantity[u.rad / u.s]:
     r"""
     Return the lower hybrid frequency.
@@ -394,7 +397,7 @@ def lower_hybrid_frequency(
 
     Warns
     -----
-    : `~astropy.units.UnitsWarning`
+    `~astropy.units.UnitsWarning`
         If units are not provided, SI units are assumed.
 
     Notes
@@ -452,7 +455,8 @@ wlh_ = lower_hybrid_frequency
 )
 @angular_freq_to_hz
 def upper_hybrid_frequency(
-    B: u.Quantity[u.T], n_e: u.Quantity[u.m**-3]
+    B: u.Quantity[u.T],
+    n_e: u.Quantity[u.m**-3],
 ) -> u.Quantity[u.rad / u.s]:
     r"""
     Return the upper hybrid frequency.
@@ -486,7 +490,7 @@ def upper_hybrid_frequency(
 
     Warns
     -----
-    : `~astropy.units.UnitsWarning`
+    `~astropy.units.UnitsWarning`
         If units are not provided, SI units are assumed.
 
     Notes
@@ -516,7 +520,6 @@ def upper_hybrid_frequency(
     <Quantity 4.00459...e+11 rad / s>
     >>> upper_hybrid_frequency(0.2 * u.T, n_e=5e19 * u.m**-3, to_hz=True)
     <Quantity 6.37350...e+10 Hz>
-
     """
     omega_pe = plasma_frequency(n=n_e, particle="e-")
     omega_ce = gyrofrequency(B, "e-")
@@ -531,10 +534,10 @@ wuh_ = upper_hybrid_frequency
     validations_on_return={
         "units": [u.rad / u.s, u.Hz],
         "equivalencies": [(u.cy / u.s, u.Hz)],
-    }
+    },
 )
 @angular_freq_to_hz
-def Buchsbaum_frequency(
+def Buchsbaum_frequency(  # noqa: PLR0917
     B: u.Quantity[u.T],
     n1: u.Quantity[u.m**-3],
     n2: u.Quantity[u.m**-3],
@@ -593,7 +596,7 @@ def Buchsbaum_frequency(
 
     Warns
     -----
-    : `~astropy.units.UnitsWarning`
+    `~astropy.units.UnitsWarning`
         If units are not provided, SI units are assumed.
 
     Notes
@@ -604,11 +607,12 @@ def Buchsbaum_frequency(
     to as the Buchsbaum frequency :cite:p:`buchsbaum:1960`, also called
     the bi-ion hybrid resonance frequency :cite:p:`thompson:1995`, or
     ion-ion hybrid frequency :cite:p:`vincena:2013`. This frequency
-    can be defined as:
+    can be defined as
 
     .. math::
+
         ω_{BB} ≡ \sqrt{\frac{ω_{p1}^2 ω_{c2}^2
-            + ω_{p2}^2 ω_{c1}^2}{ω_{p2}^2 + ω_{p2}^2}}
+        + ω_{p2}^2 ω_{c1}^2}{ω_{p2}^2 + ω_{p2}^2}}
 
     Examples
     --------
@@ -632,5 +636,5 @@ def Buchsbaum_frequency(
 
     return np.sqrt(
         (omega_p1_squared * omega_c2_squared + omega_p2_squared * omega_c1_squared)
-        / (omega_p1_squared + omega_p2_squared)
+        / (omega_p1_squared + omega_p2_squared),
     )

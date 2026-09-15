@@ -14,7 +14,6 @@ import astropy.units as u
 import numpy as np
 import pytest
 from astropy.constants.si import k_B
-from numba.extending import is_jitted
 
 from plasmapy.formulary.speeds import (
     kappa_thermal_speed,
@@ -79,7 +78,7 @@ class TestThermalSpeedCoefficients:
     def test_values(self, ndim, method, expected) -> None:
         """Test that the correct values are returned."""
         val = thermal_speed_coefficients(ndim=ndim, method=method)
-        assert np.isclose(val, expected)
+        np.testing.assert_allclose(val, expected, rtol=1e-5, atol=1e-8)
 
 
 class TestThermalSpeed:
@@ -235,7 +234,7 @@ class TestThermalSpeed:
     def test_values(self, args, kwargs, expected) -> None:
         """Test scenarios with known calculated values."""
         vth = thermal_speed(*args, **kwargs)
-        assert np.allclose(vth.value, expected)
+        np.testing.assert_allclose(vth.value, expected, rtol=1e-5, atol=1e-8)
         assert vth.unit == u.m / u.s
 
     @pytest.mark.parametrize(
@@ -274,10 +273,10 @@ class TestThermalSpeed:
         """Test scenarios where `thermal_speed` issues warnings."""
         with pytest.warns(_warning):
             vth = thermal_speed(*args, **kwargs)
-            assert vth.unit == u.m / u.s
+        assert vth.unit == u.m / u.s
 
-            if expected is not None:
-                assert vth == expected
+        if expected is not None:
+            assert vth == expected
 
     def test_electron_vs_proton(self) -> None:
         """
@@ -292,10 +291,6 @@ class TestThermalSpeed:
 
 class TestThermalSpeedLite:
     """Test class for `thermal_speed_lite`."""
-
-    def test_is_jitted(self) -> None:
-        """Ensure `thermal_speed_lite` was jitted by `numba`."""
-        assert is_jitted(thermal_speed_lite)
 
     @pytest.mark.parametrize(
         "inputs",
@@ -327,11 +322,9 @@ class TestThermalSpeedLite:
         coeff = thermal_speed_coefficients(method=inputs["method"], ndim=inputs["ndim"])
 
         lite = thermal_speed_lite(T=T_unitless, mass=m_unitless, coeff=coeff)
-        pylite = thermal_speed_lite.py_func(T=T_unitless, mass=m_unitless, coeff=coeff)
-        assert pylite == lite
 
         normal = thermal_speed(**inputs)
-        assert np.isclose(normal.value, lite)
+        np.testing.assert_allclose(normal.value, lite, rtol=1e-5, atol=1e-8)
 
 
 # test class for kappa_thermal_speed() function:
@@ -362,7 +355,10 @@ class Test_kappa_thermal_speed:
         """
         with pytest.raises(ValueError):
             kappa_thermal_speed(
-                self.T_e, self.kappa, particle=self.particle, method="invalid"
+                self.T_e,
+                self.kappa,
+                particle=self.particle,
+                method="invalid",
             )
 
     def test_probable1(self) -> None:
@@ -370,7 +366,10 @@ class Test_kappa_thermal_speed:
         Tests if expected value is returned for a set of regular inputs.
         """
         known1 = kappa_thermal_speed(
-            self.T_e, self.kappa, particle=self.particle, method="most_probable"
+            self.T_e,
+            self.kappa,
+            particle=self.particle,
+            method="most_probable",
         )
         errstr = (
             f"Kappa thermal velocity should be {self.probable1True} "
@@ -383,7 +382,10 @@ class Test_kappa_thermal_speed:
         Tests if expected value is returned for a set of regular inputs.
         """
         known1 = kappa_thermal_speed(
-            self.T_e, self.kappa, particle=self.particle, method="rms"
+            self.T_e,
+            self.kappa,
+            particle=self.particle,
+            method="rms",
         )
         errstr = (
             f"Kappa thermal velocity should be {self.rms1True} "
@@ -396,7 +398,10 @@ class Test_kappa_thermal_speed:
         Tests if expected value is returned for a set of regular inputs.
         """
         known1 = kappa_thermal_speed(
-            self.T_e, self.kappa, particle=self.particle, method="mean_magnitude"
+            self.T_e,
+            self.kappa,
+            particle=self.particle,
+            method="mean_magnitude",
         )
         errstr = (
             f"Kappa thermal velocity should be {self.mean1True} "
@@ -404,8 +409,7 @@ class Test_kappa_thermal_speed:
         )
         assert np.isclose(known1.value, self.mean1True, rtol=1e-8, atol=0.0), errstr
 
-    def test_handle_nparrays(self, kwargs=None) -> None:
+    def test_handle_nparrays(self) -> None:
         """Test for ability to handle numpy array quantities"""
-        if kwargs is None:
-            kwargs = {"kappa": 2}
+        kwargs = {"kappa": 2}
         assert_can_handle_nparray(kappa_thermal_speed, kwargs=kwargs)

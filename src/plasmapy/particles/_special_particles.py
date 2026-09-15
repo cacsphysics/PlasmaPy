@@ -4,11 +4,11 @@ for special particles.
 """
 
 __all__ = [
+    "ParticleZoo",
     "antiparticles",
     "create_particles_dict",
     "data_about_special_particles",
     "particle_zoo",
-    "ParticleZoo",
     "special_ion_masses",
 ]
 
@@ -149,7 +149,6 @@ def create_particles_dict() -> dict[str, dict]:  # noqa: C901, PLR0912
     ``'mass'``, and ``'spin'`` as the keys and the corresponding atomic
     properties as symbols.
     """
-
     symbols_and_names = [
         ("e-", "electron"),
         ("e+", "positron"),
@@ -245,7 +244,10 @@ def create_particles_dict() -> dict[str, dict]:  # noqa: C901, PLR0912
             "mass": const.m_p,
             "charge number": 1,
             "periodic table": _elements.PeriodicTable(
-                group=1, period=1, block="s", category="nonmetal"
+                group=1,
+                period=1,
+                block="s",
+                category="nonmetal",
             ),
         },
         "p-": {"mass": const.m_p, "charge number": -1},
@@ -257,8 +259,8 @@ def create_particles_dict() -> dict[str, dict]:  # noqa: C901, PLR0912
         },
     }
 
-    for particle in special_attributes:
-        particles[particle] = {**special_attributes[particle], **particles[particle]}
+    for particle, attributes in special_attributes.items():
+        particles[particle] = {**attributes, **particles[particle]}
 
     for particle in particle_zoo.everything:
         if "half-life" not in particles[particle]:

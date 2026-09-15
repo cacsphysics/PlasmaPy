@@ -60,7 +60,7 @@ def test_Plasma3D_setup(grid_dimensions, expected_size: int) -> None:
     assert test_plasma.electric_field.si.unit == u.V / u.m
 
 
-@pytest.mark.slow()
+@pytest.mark.slow
 def test_Plasma3D_derived_vars() -> None:
     r"""Function to test derived variables of the Plasma3D class.
 
@@ -90,7 +90,9 @@ def test_Plasma3D_derived_vars() -> None:
         == test_plasma.magnetic_field.shape[1:]
     )
     assert test_plasma.magnetic_field_strength.si.unit == u.T
-    assert np.allclose(test_plasma.magnetic_field_strength.value, 0.017320508)
+    np.testing.assert_allclose(
+        test_plasma.magnetic_field_strength.value, 0.017320508, rtol=1e-5, atol=1e-8
+    )
 
     assert (
         test_plasma.electric_field_strength.shape
@@ -100,4 +102,6 @@ def test_Plasma3D_derived_vars() -> None:
 
     assert test_plasma.alfven_speed.shape == test_plasma.density.shape
     assert test_plasma.alfven_speed.unit.si == u.m / u.s
-    assert np.allclose(test_plasma.alfven_speed.value, 10.92548431)
+    np.testing.assert_allclose(
+        test_plasma.alfven_speed.value, 10.92548431, rtol=1e-5, atol=1e-8
+    )

@@ -17,18 +17,19 @@ from plasmapy.diagnostics.charged_particle_radiography.detector_stacks import (
 from plasmapy.utils.data.downloader import _API_CONNECTION_ESTABLISHED, Downloader
 
 check_database_connection = pytest.mark.skipif(
-    not _API_CONNECTION_ESTABLISHED, reason="failed to connect to data repository"
+    not _API_CONNECTION_ESTABLISHED,
+    reason="failed to connect to data repository",
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def downloader(tmpdir_factory):
     path = tmpdir_factory.mktemp("data")
     # Turn off validation so API calls aren't used
     return Downloader(directory=path, validate=False)
 
 
-@pytest.fixture()
+@pytest.fixture
 def hdv2_stack(downloader):
     """
     A Stack object representing a stack of HDV2 radiochromic film.
@@ -51,7 +52,11 @@ def hdv2_stack(downloader):
     HDV2 = [
         Layer(12 * u.um, eaxis, tissue_equivalent, name="2-HDV2-active"),
         Layer(
-            97 * u.um, eaxis, tissue_equivalent, name="2-HDV2-substrate", active=False
+            97 * u.um,
+            eaxis,
+            tissue_equivalent,
+            name="2-HDV2-substrate",
+            active=False,
         ),
     ]
 
@@ -114,7 +119,9 @@ def test_film_stack_num_active(hdv2_stack) -> None:
 @check_database_connection
 def test_film_stack_thickness(hdv2_stack) -> None:
     # Test thickness property
-    assert np.isclose(hdv2_stack.thickness.to(u.mm).value, 1.19)
+    np.testing.assert_allclose(
+        hdv2_stack.thickness.to(u.mm).value, 1.19, rtol=1e-5, atol=1e-8
+    )
 
 
 @check_database_connection
@@ -123,9 +130,9 @@ def test_film_stack_deposition_curves(hdv2_stack) -> None:
     deposition_curves = hdv2_stack.deposition_curves(energies, return_only_active=False)
 
     integral = np.sum(deposition_curves, axis=0)
-    assert np.allclose(
-        integral, 1.0
-    ), "The integral over all layers for each particle species is not unity."
+    assert np.allclose(integral, 1.0), (
+        "The integral over all layers for each particle species is not unity."
+    )
 
 
 @check_database_connection
@@ -136,15 +143,22 @@ def test_film_stack_energy_bands_active(hdv2_stack) -> None:
     # Expected energy bands, in MeV (only in active layers)
     expected = np.array([[3.5, 3.8], [4.6, 4.9], [5.6, 5.7], [6.4, 6.5], [7.1, 7.2]])
 
-    assert np.allclose(ebands.to(u.MeV).value[:5, :], expected, atol=0.15)
+    np.testing.assert_allclose(
+        ebands.to(u.MeV).value[:5, :], expected, atol=0.15, rtol=1e-5
+    )
 
 
 @check_database_connection
 def test_film_stack_energy_bands_inum_active(hdv2_stack) -> None:
     # Test including inum_active layers
     ebands = hdv2_stack.energy_bands(
-        [0.1, 60] * u.MeV, 0.1 * u.MeV, dx=1 * u.um, return_only_active=False
+        [0.1, 60] * u.MeV,
+        0.1 * u.MeV,
+        dx=1 * u.um,
+        return_only_active=False,
     )
     # Expected first 5 energy bands
     expected = np.array([[0.1, 4.2], [3.5, 3.8], [3.9, 5.1], [4.6, 4.9], [4.9, 6]])
-    assert np.allclose(ebands.to(u.MeV).value[0:5, :], expected, atol=0.15)
+    np.testing.assert_allclose(
+        ebands.to(u.MeV).value[0:5, :], expected, atol=0.15, rtol=1e-5
+    )

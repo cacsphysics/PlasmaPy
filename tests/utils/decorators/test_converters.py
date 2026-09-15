@@ -13,18 +13,18 @@ def test_to_hz() -> None:
     def func():
         return 2 * np.pi * u.rad / u.s
 
-    assert func().unit == (
-        u.rad / u.s
-    ), f"Unit expected is {u.rad / u.s} instead of {func().unit}"
-    assert np.isclose(
-        func().value, 2 * np.pi
-    ), f"Value expected is {2 * np.pi} instead of {func().value}"
-    assert (
-        func(to_hz=True).unit == u.Hz
-    ), f"Unit expected is {u.Hz} instead of {func(to_hz=True).unit}"
-    assert (
-        func(to_hz=True).value == 1
-    ), f"Value expected is 1 instead of {func(to_hz=True).value}"
+    assert func().unit == (u.rad / u.s), (
+        f"Unit expected is {u.rad / u.s} instead of {func().unit}"
+    )
+    assert np.isclose(func().value, 2 * np.pi), (
+        f"Value expected is {2 * np.pi} instead of {func().value}"
+    )
+    assert func(to_hz=True).unit == u.Hz, (
+        f"Unit expected is {u.Hz} instead of {func(to_hz=True).unit}"
+    )
+    assert func(to_hz=True).value == 1, (
+        f"Value expected is 1 instead of {func(to_hz=True).value}"
+    )
 
 
 def test_to_hz_complicated_signature() -> None:
@@ -35,22 +35,22 @@ def test_to_hz_complicated_signature() -> None:
     """
 
     @angular_freq_to_hz
-    def func2(a, /, b, *args, c, d: int = 2, **kwargs):
+    def func2(a, /, b, *args, c, d: int = 2, **kwargs):  # noqa: ANN002, ANN003, ANN202
         return 2 * np.pi * u.rad / u.s
 
     result_rad_per_s = func2(1, 2, 3, 4, c=5, d=6, e=7)
     result_hz = func2(1, 2, 3, 4, c=5, d=6, e=7, to_hz=True)
 
-    assert (
-        result_rad_per_s.unit == u.rad / u.s
-    ), f"Unit expected is {(u.rad / u.s)} instead of {result_rad_per_s.unit}"
-    assert np.isclose(
-        result_rad_per_s.value, 2 * np.pi
-    ), f"Value expected is {2 * np.pi} instead of {result_rad_per_s.value}"
+    assert result_rad_per_s.unit == u.rad / u.s, (
+        f"Unit expected is {(u.rad / u.s)} instead of {result_rad_per_s.unit}"
+    )
+    assert np.isclose(result_rad_per_s.value, 2 * np.pi), (
+        f"Value expected is {2 * np.pi} instead of {result_rad_per_s.value}"
+    )
 
-    assert (
-        result_hz.unit == u.Hz
-    ), f"Unit expected is {u.Hz} instead of {result_hz.unit}"
+    assert result_hz.unit == u.Hz, (
+        f"Unit expected is {u.Hz} instead of {result_hz.unit}"
+    )
     assert result_hz.value == 1, f"Value expected is 1 instead of {result_hz.value}"
 
 
@@ -60,7 +60,7 @@ def test_to_hz_stacked_decorators() -> None:
     @particle_input
     @validate_quantities
     @angular_freq_to_hz
-    def func(particle: ParticleLike | None = None):
+    def func(particle: ParticleLike | None = None):  # noqa: ANN202
         return 2 * np.pi * u.rad / u.s
 
     assert u.isclose(func(), 2 * np.pi * u.rad / u.s)
@@ -74,26 +74,32 @@ def test_angular_freq_to_hz_preserves_signature() -> None:
     """
 
     @angular_freq_to_hz
-    def test_func(
-        pos_only, /, arg, *args, required_kwarg, optional_kwarg: int = 2, **kwargs
-    ):
-        return 2 * u.rad / u.s
-
-    def func_with_expected_signature(
+    def test_func(  # noqa: ANN202
         pos_only,
         /,
         arg,
-        *args,
+        *args,  # noqa: ANN002
+        required_kwarg,
+        optional_kwarg: int = 2,
+        **kwargs,  # noqa: ANN002, ANN003, RUF100
+    ):
+        return 2 * u.rad / u.s
+
+    def func_with_expected_signature(  # noqa: ANN202
+        pos_only,
+        /,
+        arg,
+        *args,  # noqa: ANN002
         required_kwarg,
         optional_kwarg: int = 2,
         to_hz: bool = False,
-        **kwargs,
+        **kwargs,  # noqa: ANN003
     ):
         return 2 * u.rad / u.s
 
     original_signature = inspect.signature(test_func)
     expected_signature = inspect.signature(func_with_expected_signature)
 
-    assert (
-        original_signature == expected_signature
-    ), f"Expected signature: {expected_signature}, but got: {original_signature}"
+    assert original_signature == expected_signature, (
+        f"Expected signature: {expected_signature}, but got: {original_signature}"
+    )

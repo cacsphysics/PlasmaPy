@@ -1,6 +1,8 @@
 """
-The `~plasmapy.formulary` subpackage contains commonly used formulae
-from plasma science.
+Commonly used formulas for plasma science.
+
+Many of these formulas come from the NRL Plasma Formulary
+:cite:p:`nrlformulary:2019`.
 """
 
 __all__: list[str] = []
@@ -15,7 +17,9 @@ from plasmapy.formulary.dimensionless import *
 from plasmapy.formulary.distribution import *
 from plasmapy.formulary.drifts import *
 from plasmapy.formulary.frequencies import *
+from plasmapy.formulary.fusion import *
 from plasmapy.formulary.ionization import *
+from plasmapy.formulary.laser import *
 from plasmapy.formulary.lengths import *
 from plasmapy.formulary.magnetostatics import *
 from plasmapy.formulary.mathematics import *
@@ -43,6 +47,7 @@ import contextlib  # isort: skip
 for modname in (
     "braginskii",
     "collisions",
+    "fusion",
     "densities",
     "dielectric",
     "dimensionless",
@@ -58,6 +63,7 @@ for modname in (
     "radiation",
     "relativity",
     "speeds",
+    "laser",
 ):
     try:
         obj = globals()[modname]

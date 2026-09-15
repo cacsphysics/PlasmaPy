@@ -60,12 +60,7 @@ available at these locations:
   A preview of the documentation is generated every time a pull request
   is created or updated. You can access this preview by scrolling down
   to the checks at the bottom of a pull request, and clicking on
-  :guilabel:`Details` next to :guilabel:`docs/readthedocs.org:plasmapy`.
-
-.. image:: ../_static/contributor_guide/readthedocs_preview_link.png
-   :width: 700
-   :align: center
-   :alt: Access to the preview of the documentation after a pull request
+  :guilabel:`docs/readthedocs.org:plasmapy`.
 
 Markup Languages
 ================
@@ -115,22 +110,7 @@ section on :ref:`external-references`. In-line code samples are
 typically enclosed in double backticks. To get inline code highlighting,
 use the :rest:`:py:` role for Python code.
 
-.. code-block:: rst
-
-   Here `plasmapy.particles` provides a linked reference to the
-   module's documentation.
-
-   Adding a tilde at the beginning `~plasmapy.particles` still
-   provides a linked reference to the associated documentation
-   but shortens the display so only "particles" is displayed.
-
-   Double backticks are used to show inline code that is not
-   cross-referenced: ``plasmapy.particles``.
-
-   The ``:py:`` role can be used for inline code highlighting:
-   :py:`import astropy.units as u`.
-
-This |reStructuredText| block renders as:
+.. rest-example::
 
    Here `plasmapy.particles` provides a linked reference to the
    module's documentation.
@@ -148,7 +128,7 @@ This |reStructuredText| block renders as:
 |Sphinx| can format code blocks for |Python| and the |Python| console
 using the :rst:dir:`code-block` :term:`directive`.
 
-   .. code-block:: rst
+   .. rest-example::
 
       .. code-block:: python
 
@@ -160,21 +140,9 @@ using the :rst:dir:`code-block` :term:`directive`.
          >>> print(6 * 9)
          54
 
-This |reStructuredText| block renders as:
-
-   .. code-block:: python
-
-      def sample_function():
-          return 42
-
-   .. code-block:: pycon
-
-      >>> print(6 * 9)
-      54
-
 Here are some examples for linking to websites.
 
-.. code-block:: rst
+.. rest-example::
 
    `PlasmaPy Enhancement Proposals <https://github.com/PlasmaPy/PlasmaPy-PLEPs>`_
    are used to propose major changes to PlasmaPy.
@@ -184,26 +152,10 @@ Here are some examples for linking to websites.
    .. _`Write the Docs`: https://www.writethedocs.org
    .. _guide: https://www.writethedocs.org/
 
-This |reStructuredText| block renders as:
-
-   `PlasmaPy Enhancement Proposals <https://github.com/PlasmaPy/PlasmaPy-PLEPs>`_
-   are used to propose major changes to PlasmaPy.
-
-   `Write the Docs`_ has a guide_ on writing software documentation.
-
-   .. _`Write the Docs`: https://www.writethedocs.org/
-   .. _guide: https://www.writethedocs.org/
-
 Displayed math may be created using the :rst:dir:`math`
 :term:`directive` using LaTeX_ syntax.
 
-.. code-block:: rst
-
-   .. math::
-
-      \alpha = \beta + \gamma
-
-This |reStructuredText| block renders as:
+.. rest-example::
 
    .. math::
 
@@ -211,12 +163,7 @@ This |reStructuredText| block renders as:
 
 Math can be in-line using the :rst:role:`math` |role|.
 
-.. code-block:: rst
-
-   An example of in-line math is :math:`x`. Using Unicode characters
-   like :math:`α + β + γ` makes math easier to read in the source code.
-
-This |reStructuredText| block renders as:
+.. rest-example::
 
    An example of in-line math is :math:`x`. Using Unicode characters
    like :math:`α + β + γ` makes math easier to read in the source code.
@@ -669,15 +616,7 @@ documentation for PlasmaPy and affiliated packages.
   example below. The backslash followed by a space is needed to have a
   space between the number and the units.
 
-  .. code-block:: rst
-
-     The speed of light is approximately :math:`3 × 10^8` m/s or
-
-     .. math::
-
-        3 × 10^{10}\ \text{cm/s}
-
-  This |reStructuredText| block renders as:
+  .. rest-example::
 
      The speed of light is approximately :math:`3 × 10^8` m/s or
 
@@ -697,15 +636,7 @@ documentation for PlasmaPy and affiliated packages.
   text to show up immediately next to the regular text. This is not
   necessary before a period or comma.
 
-  .. code-block:: rst
-
-     The symbol for helium is He.
-
-     The symbol for an electron is e\ :sup:`-`.
-
-     An alpha particle may be represented as :sup:`4`\ He\ :sup:`1+`.
-
-  This |reStructuredText| block renders as:
+  .. rest-example::
 
      The symbol for helium is He.
 
@@ -897,7 +828,7 @@ The type specification should not include information about the
 
   .. tip::
 
-     Use `typing.Literal` in |type hint annotations| when a parameter
+     Use `typing.Literal` in |type annotations| when a parameter
      should only be provided with specific values (e.g.,
      :py:`x: Literal{1, 2, 3, 4}`).
 
@@ -921,7 +852,7 @@ Parameter descriptions
 The **parameter description** should concisely describe the meaning of
 the parameter, as well as any requirements or restrictions on allowed
 values of the parameter (including those specified by
-|validate_quantities| or |particle_input|. The parameter description
+|validate_quantities| or |particle_input|). The parameter description
 should not repeat information already in the type specification, but may
 include type information when:
 
@@ -1071,8 +1002,6 @@ extensions:
 * |IPython.sphinxext.ipython_console_highlighting|_.
 * |sphinx_changelog|_ for rendering |towncrier| changelogs.
 * |sphinx-tabs|_ for creating tabbed content.
-* |sphinx-hoverxref|_ for showing floating windows on cross references
-  of the documentation.
 * |sphinx-notfound-page|_ to add a :wikipedia:`404 <HTTP_404>` page for
   the documentation.
 * |sphinx-issues|_ to add roles for linking to GitHub (:rst:role:`commit`,
@@ -1287,21 +1216,20 @@ Building documentation
 .. tip::
 
    Because a documentation preview is generated automatically by |Read
-   the Docs| for every pull request, it is not necessary to build the
-   documentation locally on your own computer. New contributors can
-   safely skip this section.
+   the Docs| for every pull request, it is generally unnecessary to
+   build the documentation on your own computer. Most contributors can
+   skip this section.
 
-There are two methods for building the documentation: make_ and |Nox|.
+There are two methods for building the documentation: |Nox| (recommend)
+and make_.
+
+* Running ``nox -s docs`` will install an isolated virtual environment
+  with ``uv`` that will be used to build the documentation at
+  :file:`docs/_build/html/`.
 
 * Using make_ will build the documentation based off of what is in the
   current directory structure. make_ is quicker for local builds than
   |Nox| but requires you to install and set up all dependencies.
-
-* Using |Nox| does not require setting up all dependencies ahead of
-  time, but is more computationally intensive since it creates a virtual
-  environment and builds the package before building the documentation.
-  Consequently, PlasmaPy uses |Nox| for building the documentation on
-  continuous integration testing platforms.
 
 .. _doc-build-prereqs:
 
@@ -1553,7 +1481,7 @@ PlasmaPy's documentation build.
 To figure out if a new release caused the error, search |PyPI| for
 recently released packages, including `packages related to Sphinx`_ and
 any that came up in the error message. You can also check if the same
-documentation build failure happened in the `weekly tests`_ on the
+documentation build failure happened in the `comprehensive tests`_ on the
 ``main`` branch. After identifying the package that caused the error, a
 pull request can be submitted that sets a temporary maximum allowed
 version of the package that can be revisited later.
@@ -1601,7 +1529,7 @@ example Jupyter notebooks, the tables of contents are in
 .. _BibTeX: https://www.bibtex.org
 .. _BibTeX format: https://www.bibtex.com/g/bibtex-format
 .. _configuration options: https://www.sphinx-doc.org/en/master/usage/configuration.html
-.. _CSS: https://www.w3schools.com:443/css
+.. _CSS: http://www.w3schools.com/css/
 .. _define substitutions: https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#substitution-definitions
 .. _doctests: https://docs.pytest.org/en/6.2.x/doctest.html
 .. _full list of emoji codes: https://sphinxemojicodes.readthedocs.io/en/stable/#supported-codes
@@ -1630,10 +1558,10 @@ example Jupyter notebooks, the tables of contents are in
 .. _sphinx-codeautolink: https://sphinx-codeautolink.readthedocs.io
 .. _Sphinx's glossary: https://www.sphinx-doc.org/en/master/glossary.html
 .. _Sphinx's templating page: https://www.sphinx-doc.org/en/master/development/templating.html
-.. _style overrides: https://docs.readthedocs.io/en/stable/guides/adding-custom-css.html
+.. _style overrides: https://docs.readthedocs.com/platform/stable/guides/adding-custom-css.html
 .. _toctree: https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#table-of-contents
 .. _warns: https://numpydoc.readthedocs.io/en/latest/format.html#warns
-.. _weekly tests: https://github.com/PlasmaPy/PlasmaPy/actions/workflows/weekly.yml
+.. _comprehensive tests: https://github.com/PlasmaPy/PlasmaPy/actions/workflows/ci-comprehensive.yml
 .. _Wikipedia: https://www.wikipedia.org
 
 .. ----------------------
@@ -1702,9 +1630,6 @@ example Jupyter notebooks, the tables of contents are in
 
 .. _`sphinx-reredirects`: https://documatt.gitlab.io/sphinx-reredirects
 .. |sphinx-reredirects| replace:: `sphinx-reredirects`
-
-.. _`sphinx-hoverxref`: https://sphinx-hoverxref.readthedocs.io
-.. |sphinx-hoverxref| replace:: `sphinx-hoverxref`
 
 .. _`sphinx-issues`: https://github.com/sloria/sphinx-issues
 .. |sphinx-issues| replace:: `sphinx-issues`

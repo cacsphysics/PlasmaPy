@@ -248,19 +248,19 @@ def test_functions_and_values(tested_function, args, kwargs, expected_output) ->
 class TestInvalidPeriodicElement:
     def test_periodic_table_period(self) -> None:
         with pytest.raises(TypeError):
-            periodic_table_period(("Ne", "Na"))
+            periodic_table_period(("Ne", "Na"))  # ty:ignore[invalid-argument-type]
 
     def test_periodic_table_block(self) -> None:
         with pytest.raises(TypeError):
-            periodic_table_block(("N", "C", "F"))
+            periodic_table_block(("N", "C", "F"))  # ty:ignore[invalid-argument-type]
 
     def test_periodic_table_category(self) -> None:
         with pytest.raises(TypeError):
-            periodic_table_category(["Rb", "He", "Li"])
+            periodic_table_category(["Rb", "He", "Li"])  # ty:ignore[invalid-argument-type]
 
     def test_periodic_table_group(self) -> None:
         with pytest.raises(TypeError):
-            periodic_table_group(("B", "Ti", "Ge"))
+            periodic_table_group(("B", "Ti", "Ge"))  # ty:ignore[invalid-argument-type]
 
 
 # Next we have tests that do not fall nicely into equality comparisons.
@@ -269,16 +269,16 @@ class TestInvalidPeriodicElement:
 def test_standard_atomic_weight_value_between() -> None:
     """Test that `standard_atomic_weight` returns approximately the
     correct value for phosphorus."""
-    assert (
-        30.973 < standard_atomic_weight("P").to(u.u).value < 30.974
-    ), "Incorrect standard atomic weight for phosphorus."
+    assert 30.973 < standard_atomic_weight("P").to(u.u).value < 30.974, (
+        "Incorrect standard atomic weight for phosphorus."
+    )
 
 
 def test_particle_mass_berkelium_249() -> None:
     """Test that `particle_mass` returns the correct value for Bk-249."""
-    assert np.isclose(
-        particle_mass("berkelium-249").to(u.u).value, 249.0749877
-    ), "Incorrect isotope mass for berkelium."
+    assert np.isclose(particle_mass("berkelium-249").to(u.u).value, 249.0749877), (
+        "Incorrect isotope mass for berkelium."
+    )
 
 
 def test_particle_mass_for_hydrogen_with_no_mass_number() -> None:
@@ -320,12 +320,12 @@ equivalent_particle_mass_args = [
 
 
 @pytest.mark.parametrize(
-    ("arg1", "kwargs1", "arg2", "kwargs2", "expected"), equivalent_particle_mass_args
+    ("arg1", "kwargs1", "arg2", "kwargs2", "expected"),
+    equivalent_particle_mass_args,
 )
 def test_particle_mass_equivalent_args(arg1, kwargs1, arg2, kwargs2, expected) -> None:
     """Test that `particle_mass` returns equivalent results for
     equivalent positional and keyword arguments."""
-
     result1 = particle_mass(arg1, **kwargs1)
     result2 = particle_mass(arg2, **kwargs2)
 
@@ -337,7 +337,8 @@ def test_particle_mass_equivalent_args(arg1, kwargs1, arg2, kwargs2, expected) -
 
     if expected is not None:
         assert u.isclose(result1, result2) and u.isclose(  # noqa: PT018
-            result2, expected
+            result2,
+            expected,
         ), (
             f"particle_mass({arg1!r}, **{kwargs1}) = {result1!r} and "
             f"particle_mass({arg2!r}, **{kwargs2}) = {result2!r}, but "
@@ -345,11 +346,10 @@ def test_particle_mass_equivalent_args(arg1, kwargs1, arg2, kwargs2, expected) -
         )
 
 
-@pytest.mark.slow()
+@pytest.mark.slow
 def test_known_common_stable_isotopes() -> None:
     """Test that `known_isotopes`, `common_isotopes`, and
     `stable_isotopes` return the correct values for hydrogen."""
-
     known_should_be = ["H-1", "D", "T", "H-4", "H-5", "H-6", "H-7"]
     common_should_be = ["H-1", "D"]
     stable_should_be = ["He-3", "He-4"]
@@ -374,7 +374,9 @@ def test_half_life() -> None:
     """Test that `half_life` returns the correct values for various
     isotopes."""
     assert np.isclose(
-        half_life("tritium").to(u.s).value, (12.32 * u.yr).to(u.s).value, rtol=2e-4
+        half_life("tritium").to(u.s).value,
+        (12.32 * u.yr).to(u.s).value,
+        rtol=2e-4,
     ), "Incorrect half-life for tritium."
 
 
@@ -393,7 +395,6 @@ def test_half_life_unstable_isotopes() -> None:
 def test_half_life_u_220() -> None:
     """Test that `half_life` returns `None` and issues a warning for an
     isotope without half-life data."""
-
     isotope_without_half_life_data = "No-248"
 
     with pytest.raises(MissingParticleDataError):
@@ -402,7 +403,7 @@ def test_half_life_u_220() -> None:
             f"This test assumes that {isotope_without_half_life_data} does "
             f"not have half-life data.  If half-life data is added for this "
             f"isotope, then a different isotope that does not have half-life "
-            f"data should be chosen for this test."
+            f"data should be chosen for this test.",
         )
 
 
@@ -423,7 +424,7 @@ def test_known_common_stable_isotopes_cases() -> None:
     assert "He-4" in common_isotopes("He", most_common_only=True)
 
 
-@pytest.mark.slow()
+@pytest.mark.slow
 def test_known_common_stable_isotopes_len() -> None:
     """Test that `known_isotopes`, `common_isotopes`, and
     `stable_isotopes` each return a `list` of the expected length.
@@ -438,7 +439,6 @@ def test_known_common_stable_isotopes_len() -> None:
     discovered, so a buffer is included in the test.
 
     """
-
     assert len(common_isotopes()) == 288, (
         "The length of the list returned by common_isotopes() is "
         f"{len(common_isotopes())}, which is not the expected value."
@@ -469,7 +469,7 @@ def test_isotopic_abundance() -> None:
     """Test that `isotopic_abundance` returns the appropriate values or
     raises appropriate errors for various isotopes."""
     assert isotopic_abundance("H", 1) == isotopic_abundance("protium")
-    assert np.isclose(isotopic_abundance("D"), 0.000115)
+    np.testing.assert_allclose(isotopic_abundance("D"), 0.000115, rtol=1e-5, atol=1e-8)
     assert isotopic_abundance("Be-8") == 0.0, "Be-8"
     assert isotopic_abundance("Li-8") == 0.0, "Li-8"
 
@@ -491,7 +491,9 @@ isotopic_abundance_isotopes = (common_isotopes(element) for element in atomic_nu
 isotopic_abundance_sum_table = (
     (element, isotopes)
     for element, isotopes in zip(
-        atomic_numbers, isotopic_abundance_isotopes, strict=False
+        atomic_numbers,
+        isotopic_abundance_isotopes,
+        strict=False,
     )
     if isotopes
 )
@@ -502,9 +504,9 @@ def test_isotopic_abundances_sum(element, isotopes) -> None:
     """Test that the sum of isotopic abundances for each element with
     isotopic abundances is one."""
     sum_of_iso_abund = sum(isotopic_abundance(isotope) for isotope in isotopes)
-    assert np.isclose(
-        sum_of_iso_abund, 1, atol=1e-6
-    ), f"The sum of the isotopic abundances for {element} does not equal 1."
+    assert np.isclose(sum_of_iso_abund, 1, atol=1e-6), (
+        f"The sum of the isotopic abundances for {element} does not equal 1."
+    )
 
 
 class TestReducedMassInput:
@@ -542,7 +544,8 @@ def test_ion_list(particle, min_charge, max_charge, expected_charge_numbers) -> 
 
 
 @pytest.mark.parametrize(
-    ("element", "min_charge", "max_charge"), [("Li", 0, 4), ("Li", 3, 2)]
+    ("element", "min_charge", "max_charge"),
+    [("Li", 0, 4), ("Li", 3, 2)],
 )
 def test_invalid_inputs_to_ion_list(element, min_charge, max_charge) -> None:
     with pytest.raises(ChargeError):
@@ -599,14 +602,15 @@ def test_ion_list2(particle, min_charge, max_charge, expected_charge_numbers) ->
 
 
 @pytest.mark.parametrize(
-    ("element", "min_charge", "max_charge"), [("Li", 0, 4), ("Li", 3, 2)]
+    ("element", "min_charge", "max_charge"),
+    [("Li", 0, 4), ("Li", 3, 2)],
 )
 def test_invalid_inputs_to_ion_list2(element, min_charge, max_charge) -> None:
     with pytest.raises(ChargeError):
         ionic_levels(element, min_charge, max_charge)
 
 
-@pytest.mark.slow()
+@pytest.mark.slow
 @pytest.mark.parametrize(
     ("incident_particle", "material", "kwargs", "expected_error"),
     [
@@ -621,7 +625,10 @@ def test_invalid_inputs_to_ion_list2(element, min_charge, max_charge) -> None:
     ],
 )
 def test_stopping_power_errors(
-    incident_particle, material, kwargs, expected_error
+    incident_particle,
+    material,
+    kwargs,
+    expected_error,
 ) -> None:
     with pytest.raises(expected_error):
         stopping_power(incident_particle, material, **kwargs)
@@ -691,18 +698,35 @@ def test_stopping_power_errors(
     ],
 )
 def test_stopping_power_interpolation(
-    incident_particle, material, energies, component, expected_stopping_power
+    incident_particle,
+    material,
+    energies,
+    component,
+    expected_stopping_power,
 ) -> None:
     """Test the interpolation functionality of the stopping power function against NIST values"""
     _, actual_stopping_power = stopping_power(
-        incident_particle, material, energies, component=component
+        incident_particle,
+        material,
+        energies,
+        component=component,
     )
 
     # NIST data is given to four significant figures: use a tolerance of 1 part in 1000
-    assert np.isclose(actual_stopping_power, expected_stopping_power, rtol=0.001).all()
+    np.testing.assert_allclose(
+        actual_stopping_power, expected_stopping_power, rtol=0.001, atol=1e-8
+    )
 
 
 def test_stopping_power_no_interpolation() -> None:
     result = stopping_power(Particle("H+"), "COPPER")
 
     assert type(result) is tuple
+
+
+def test_element_name_used_on_numpy_integer() -> None:
+    """
+    Test that `element_name` works when provided with a numpy.integer
+    object acquired from an ndarray (see #3044).
+    """
+    assert element_name(np.int32(18)) == "argon"

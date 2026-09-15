@@ -9,7 +9,8 @@ from mpmath import polylog
 
 
 def Fermi_integral(
-    x: complex | np.ndarray, j: complex | np.ndarray
+    x: complex | np.ndarray,
+    j: complex | np.ndarray,
 ) -> complex | np.ndarray:
     r"""
     Calculate the complete Fermi-Dirac integral.
@@ -39,6 +40,11 @@ def Fermi_integral(
     `ValueError`
         If the argument is not entirely finite.
 
+    Warnings
+    --------
+    At present this function is limited to relatively small arguments
+    due to limitations in ``mpmath.polylog``.
+
     Notes
     -----
     The `complete Fermi-Dirac integral
@@ -55,11 +61,6 @@ def Fermi_integral(
 
     .. math::
         F_j (x) = -Li_{j+1}\left(-e^{x}\right)
-
-    Warnings
-    --------
-    At present this function is limited to relatively small arguments
-    due to limitations in ``mpmath.polylog``.
 
     Examples
     --------
@@ -87,6 +88,30 @@ def rot_a_to_b(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     Calculates the 3D rotation matrix that will rotate vector ``a`` to
     be aligned with vector ``b``.
 
+    Parameters
+    ----------
+    a : `~numpy.ndarray`, shape (3,)
+        Vector to be rotated.  Should be a 1D, 3-element unit vector. If
+        ``a`` is not normalized, then it will be normalized.
+
+    b : `~numpy.ndarray`, shape (3,)
+        Vector representing the desired orientation after rotation.
+        Should be a 1D, 3-element unit vector.  If ``b`` is not
+        normalized, then it will be.
+
+    Returns
+    -------
+    R : `~numpy.ndarray`, shape (3,3)
+        The rotation matrix that will rotate vector ``a`` onto vector
+        ``b``.
+
+    Raises
+    ------
+    `ValueError`
+        If the argument is not of shape (3,).
+
+    Notes
+    -----
     The rotation matrix is calculated as follows. Let
 
     .. math::
@@ -97,7 +122,7 @@ def rot_a_to_b(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     :math:`\vec b` is
 
     .. math::
-        c = \vec a · \vec b \cos{θ}
+        c = \vec a · \vec b
 
     Then the rotation matrix :math:`R` is
 
@@ -124,48 +149,48 @@ def rot_a_to_b(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     <https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d/476311#476311>`_
     on StackExchange.
 
-    Parameters
-    ----------
-    a : `~numpy.ndarray`, shape (3,)
-        Vector to be rotated.  Should be a 1D, 3-element unit vector. If
-        ``a`` is not normalized, then it will be normalized.
+    Examples
+    --------
+    >>> a = np.array([0., 1., 0.])
+    >>> b = np.array([1., 0., 0.])
+    >>> rot_a_to_b(a, b)
+    array([[ 0., -1.,  0.],
+           [ 1.,  0.,  0.],
+           [ 0.,  0.,  1.]])
+    >>> a = np.array([-0.14, 2.2, 3.98])
+    >>> b = np.array([9.10, 4.17, -9.35])
+    >>> rot_a_to_b(a, b)
+    array([[ 0.20118147, -0.9613676 , -0.18787857],
+           [-0.30014001,  0.12207629, -0.94605145],
+           [ 0.93243873,  0.2467179 , -0.2639854 ]])
 
-    b : `~numpy.ndarray`, shape (3,)
-        Vector representing the desired orientation after rotation.
-        Should be a 1D, 3-element unit vector.  If ``b`` is not
-        normalized, then it will be.
-
-    Returns
-    -------
-    R : `~numpy.ndarray`, shape (3,3)
-        The rotation matrix that will rotate vector ``a`` onto vector
-        ``b``.
     """
-
     # Normalize and validate both vectors
 
     a = np.squeeze(a)
     if a.shape != (3,):
         raise ValueError(
-            f"Argument 'a' must have shape (3,) but input has shape {a.shape}."
+            f"Argument 'a' must have shape (3,) but input has shape {a.shape}.",
         )
     a = a / np.linalg.norm(a)
 
     b = np.squeeze(b)
     if b.shape != (3,):
         raise ValueError(
-            f"Argument 'b' must have shape (3,) but input has shape {b.shape}."
+            f"Argument 'b' must have shape (3,) but input has shape {b.shape}.",
         )
     b = b / np.linalg.norm(b)
 
+    c = np.dot(a, b)
+
     # Manually handle the case where a and b point in opposite directions
-    if np.dot(a, b) == -1:
+    # Use isclose because float rounding means c may be -0.99999994 instead of -1.
+    if np.isclose(c, -1.0, rtol=0.0, atol=1e-6):
         return -np.identity(3)
 
     axb = np.cross(a, b)
-    c = np.dot(a, b)
     vskew = np.array(
-        [[0, -axb[2], axb[1]], [axb[2], 0, -axb[0]], [-axb[1], axb[0], 0]]
+        [[0, -axb[2], axb[1]], [axb[2], 0, -axb[0]], [-axb[1], axb[0], 0]],
     ).T  # Transpose to get right orientation
 
     return np.identity(3) + vskew + np.dot(vskew, vskew) / (1 + c)

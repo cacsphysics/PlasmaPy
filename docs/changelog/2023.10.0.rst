@@ -108,7 +108,7 @@ Improved Documentation
 - Updated the |coding guide| by discussing when to use aliases and
   applied the ``:py:`` role so that in-line code gets formatted the
   same as Python code blocks. (:pr:`2324`)
-- Updated the docstrings and type hint annotations in
+- Updated the docstrings and type annotations in
   `plasmapy.formulary.lengths`. (:pr:`2356`)
 - Refactored :file:`docs/conf.py` to improve organization. (:pr:`2363`)
 - Updated the narrative documentation on particle objects to include
@@ -133,7 +133,7 @@ Trivial/Internal Changes
   `plasmapy.dispersion.numerical` to the `plasmapy.dispersion`
   namespace. (:pr:`2271`)
 - Expanded the |ruff| settings to include more linter rules. (:pr:`2295`)
-- Add |ruff| linter rules that check for `print` and :py:`pprint`, as
+- Added |ruff| linter rules that check for `print` and :py:`pprint`, as
   the `logging` library is generally preferred for production code.
   (:pr:`2296`)
 - Updated and corrected author information in :file:`CITATION.cff`.

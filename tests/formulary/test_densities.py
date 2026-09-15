@@ -16,14 +16,13 @@ class TestCriticalDensity:
     n_i = 5e19 * u.m**-3
     omega = plasma_frequency(n=n_i, particle="e-")
 
-    @pytest.fixture()
+    @pytest.fixture
     def n_c(self):
         """Get the critical density for the example frequency"""
         return critical_density(self.omega)
 
     def test_units(self, n_c) -> None:
         """Test the return units"""
-
         assert n_c.unit.is_equivalent(u.m**-3)
 
     def test_value(self, n_c) -> None:
@@ -34,8 +33,7 @@ class TestCriticalDensity:
         defined as the value at which the electron plasma frequency equals
         the frequency of the radiation.
         """
-
-        assert np.isclose(n_c.value, self.n_i.value)
+        np.testing.assert_allclose(n_c.value, self.n_i.value, rtol=1e-5, atol=1e-8)
 
 
 class Test_mass_density:
@@ -84,7 +82,9 @@ class Test_mass_density:
         ],
     )
     def test_values(self, args, kwargs, expected) -> None:
-        assert np.isclose(mass_density(*args, **kwargs), expected)
+        np.testing.assert_allclose(
+            mass_density(*args, **kwargs), expected, rtol=1e-5, atol=1e-8
+        )
 
     def test_handle_nparrays(self) -> None:
         """Test for ability to handle numpy array quantities"""

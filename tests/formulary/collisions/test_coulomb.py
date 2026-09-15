@@ -79,7 +79,10 @@ class Test_Coulomb_logarithm:
     def test_handle_nparrays(self, insert_some_nans, insert_all_nans, kwargs) -> None:
         """Test for ability to handle numpy array quantities"""
         assert_can_handle_nparray(
-            Coulomb_logarithm, insert_some_nans, insert_all_nans, kwargs
+            Coulomb_logarithm,
+            insert_some_nans,
+            insert_all_nans,
+            kwargs,
         )
 
     def test_unknown_method(self) -> None:
@@ -129,6 +132,9 @@ class Test_Coulomb_logarithm:
                 V=0 * u.m / u.s,
             )
 
+    @pytest.mark.filterwarnings(
+        "ignore:.*speed of light.*:plasmapy.utils.exceptions.RelativityWarning",
+    )
     def test_handle_V_arraysizes(self) -> None:
         """Test that different sized V input array gets handled by _boilerplate"""
         with pytest.warns(CouplingWarning):
@@ -159,10 +165,14 @@ class Test_Coulomb_logarithm:
     def test_symmetry(self) -> None:
         with pytest.warns(CouplingWarning):
             lnLambda = Coulomb_logarithm(
-                self.temperature1, self.density2, self.particles
+                self.temperature1,
+                self.density2,
+                self.particles,
             )
             lnLambdaRev = Coulomb_logarithm(
-                self.temperature1, self.density2, self.particles[::-1]
+                self.temperature1,
+                self.density2,
+                self.particles[::-1],
             )
         assert lnLambda == lnLambdaRev
 
@@ -310,8 +320,7 @@ class Test_Coulomb_logarithm:
             )
         testTrue = np.isclose(methodVal, self.gms1, rtol=1e-6, atol=0.0)
         errStr = (
-            f"Coulomb logarithm for GMS-1 should be "
-            f"{self.gms1} and not {methodVal}."
+            f"Coulomb logarithm for GMS-1 should be {self.gms1} and not {methodVal}."
         )
         assert testTrue, errStr
 
@@ -384,8 +393,7 @@ class Test_Coulomb_logarithm:
             )
         testTrue = np.isclose(methodVal, self.gms2, rtol=1e-6, atol=0.0)
         errStr = (
-            f"Coulomb logarithm for GMS-2 should be "
-            f"{self.gms2} and not {methodVal}."
+            f"Coulomb logarithm for GMS-2 should be {self.gms2} and not {methodVal}."
         )
         assert testTrue, errStr
 
@@ -458,8 +466,7 @@ class Test_Coulomb_logarithm:
             )
         testTrue = np.isclose(methodVal, self.gms3, rtol=1e-6, atol=0.0)
         errStr = (
-            f"Coulomb logarithm for GMS-3 should be "
-            f"{self.gms3} and not {methodVal}."
+            f"Coulomb logarithm for GMS-3 should be {self.gms3} and not {methodVal}."
         )
         assert testTrue, errStr
 
@@ -480,7 +487,10 @@ class Test_Coulomb_logarithm:
                 method="ls_clamp_mininterp",
             )
         testTrue = np.isclose(
-            methodVal, self.ls_clamp_mininterp_negative, rtol=1e-6, atol=0.0
+            methodVal,
+            self.ls_clamp_mininterp_negative,
+            rtol=1e-6,
+            atol=0.0,
         )
         errStr = (
             f"Coulomb logarithm for GMS-3 should be "
@@ -511,6 +521,9 @@ class Test_Coulomb_logarithm:
         )
         assert testTrue, errStr
 
+    @pytest.mark.filterwarnings(
+        "ignore:.*no specified units.*:astropy.units.UnitsWarning",
+    )
     def test_ls_clamp_mininterp_non_scalar_density(self) -> None:
         """
         Test for third version of Coulomb logarithm from Gericke,
@@ -528,7 +541,10 @@ class Test_Coulomb_logarithm:
                 method="ls_clamp_mininterp",
             )
         testTrue = np.isclose(
-            methodVal, self.ls_clamp_mininterp_non_scalar, rtol=1e-6, atol=0.0
+            methodVal,
+            self.ls_clamp_mininterp_non_scalar,
+            rtol=1e-6,
+            atol=0.0,
         )
         errStr = (
             f"Coulomb logarithm for GMS-3 should be "
@@ -536,6 +552,9 @@ class Test_Coulomb_logarithm:
         )
         assert testTrue.all(), errStr
 
+    @pytest.mark.filterwarnings(
+        "ignore:.*no specified units.*:astropy.units.UnitsWarning",
+    )
     def test_GMS3_non_scalar_density(self) -> None:
         """
         Test for third version of Coulomb logarithm from Gericke,
@@ -596,8 +615,7 @@ class Test_Coulomb_logarithm:
             )
         testTrue = np.isclose(methodVal, self.gms4, rtol=1e-6, atol=0.0)
         errStr = (
-            f"Coulomb logarithm for GMS-4 should be "
-            f"{self.gms4} and not {methodVal}."
+            f"Coulomb logarithm for GMS-4 should be {self.gms4} and not {methodVal}."
         )
         assert testTrue, errStr
 
@@ -618,7 +636,10 @@ class Test_Coulomb_logarithm:
                 method="hls_min_interp",
             )
         testTrue = np.isclose(
-            methodVal, self.hls_min_interp_negative, rtol=1e-6, atol=0.0
+            methodVal,
+            self.hls_min_interp_negative,
+            rtol=1e-6,
+            atol=0.0,
         )
         errStr = (
             f"Coulomb logarithm for GMS-4 should be "
@@ -686,8 +707,7 @@ class Test_Coulomb_logarithm:
             )
         testTrue = np.isclose(methodVal, self.gms5, rtol=1e-6, atol=0.0)
         errStr = (
-            f"Coulomb logarithm for GMS-5 should be "
-            f"{self.gms5} and not {methodVal}."
+            f"Coulomb logarithm for GMS-5 should be {self.gms5} and not {methodVal}."
         )
         assert testTrue, errStr
 
@@ -708,7 +728,10 @@ class Test_Coulomb_logarithm:
                 method="hls_max_interp",
             )
         testTrue = np.isclose(
-            methodVal, self.hls_max_interp_negative, rtol=1e-6, atol=0.0
+            methodVal,
+            self.hls_max_interp_negative,
+            rtol=1e-6,
+            atol=0.0,
         )
         errStr = (
             f"Coulomb logarithm for GMS-5 should be "
@@ -776,8 +799,7 @@ class Test_Coulomb_logarithm:
             )
         testTrue = np.isclose(methodVal, self.gms6, rtol=1e-6, atol=0.0)
         errStr = (
-            f"Coulomb logarithm for GMS-6 should be "
-            f"{self.gms6} and not {methodVal}."
+            f"Coulomb logarithm for GMS-6 should be {self.gms6} and not {methodVal}."
         )
         assert testTrue, errStr
 
@@ -798,7 +820,10 @@ class Test_Coulomb_logarithm:
                 method="hls_full_interp",
             )
         testTrue = np.isclose(
-            methodVal, self.hls_full_interp_negative, rtol=1e-6, atol=0.0
+            methodVal,
+            self.hls_full_interp_negative,
+            rtol=1e-6,
+            atol=0.0,
         )
         errStr = (
             f"Coulomb logarithm for GMS-6 should be "
@@ -849,7 +874,10 @@ class Test_Coulomb_logarithm:
         """
         with pytest.raises(ValueError):
             Coulomb_logarithm(
-                self.temperature2, self.density2, self.particles, method="GMS-2"
+                self.temperature2,
+                self.density2,
+                self.particles,
+                method="GMS-2",
             )
 
     def test_hls_max_interp_zmean_error(self) -> None:
@@ -872,7 +900,10 @@ class Test_Coulomb_logarithm:
         """
         with pytest.raises(ValueError):
             Coulomb_logarithm(
-                self.temperature2, self.density2, self.particles, method="GMS-5"
+                self.temperature2,
+                self.density2,
+                self.particles,
+                method="GMS-5",
             )
 
     def test_hls_full_interp_zmean_error(self) -> None:
@@ -895,7 +926,10 @@ class Test_Coulomb_logarithm:
         """
         with pytest.raises(ValueError):
             Coulomb_logarithm(
-                self.temperature2, self.density2, self.particles, method="GMS-6"
+                self.temperature2,
+                self.density2,
+                self.particles,
+                method="GMS-6",
             )
 
     def test_relativity_warn(self) -> None:
@@ -915,7 +949,10 @@ class Test_Coulomb_logarithm:
         """
         with pytest.raises(u.UnitTypeError):
             Coulomb_logarithm(
-                1e5 * u.g, 1 * u.m**-3, ("e", "p"), V=29979245 * u.m / u.s
+                1e5 * u.g,
+                1 * u.m**-3,
+                ("e", "p"),
+                V=29979245 * u.m / u.s,
             )
 
     def test_single_particle_error(self) -> None:
